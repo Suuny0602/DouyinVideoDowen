@@ -9,18 +9,11 @@
 <body>
     <h1>视频去水印</h1>
     <p>支持抖音等多平台视频无水印下载</p>
-
-    <div>
-        <input type="text" id="videoUrl" placeholder="请输入视频链接（支持视频直链接、用户访问链接、分享链接）">
-        <button onclick="parseVideo()">解析视频</button>
-    </div>
-
-    <div id="previewSection" style="display: none;">
-        <video id="videoPreview" controls></video>
-        <div>
-            <button id="downloadBtn">下载视频</button>
-        </div>
-    </div>
+    
+    <select id="videoUrl">
+        <option value="">请输入视频链接（支持视频直链接、用户访问链接、分享链接）</option>
+    </select>
+    <button id="parseBtn">解析视频</button>
 
     <footer>
         <p>作者：Sunny Yin | 联系方式：17371276909</p>

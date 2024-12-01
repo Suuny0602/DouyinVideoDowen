@@ -1,40 +1,18 @@
 /* 全局样式 */
 body {
-    font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
 }
 
-h1 {
-    margin: 0;
-    font-size: 24px;
-}
-
-p {
-    margin: 10px 0 20px;
-}
-
-input[type="text"] {
+select {
     width: 300px;
     padding: 5px;
-    margin-right: 10px;
 }
 
 button {
     padding: 5px 10px;
-    cursor: pointer;
-}
-
-#previewSection {
-    margin-top: 20px;
-}
-
-video {
-    max-width: 500px;
-    width: 100%;
 }
 
 footer {
     margin-top: 40px;
-    font-size: 14px;
 } 

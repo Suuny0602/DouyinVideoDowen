@@ -2,13 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const app = express();
+const path = require('path');
 
 // 启用CORS和JSON解析
 app.use(cors());
 app.use(express.json());
 
 // 静态文件服务
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // 视频解析API
 app.post('/api/parse', async (req, res) => {

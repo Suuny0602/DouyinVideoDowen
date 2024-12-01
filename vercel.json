@@ -12,7 +12,7 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/parse",
       "dest": "/api/index.js"
     },
     {
@@ -24,8 +24,11 @@
       "dest": "/api/index.js"
     },
     {
+      "handle": "filesystem"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/public/$1"
+      "dest": "/index.html"
     }
   ],
   "env": {

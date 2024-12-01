@@ -97,10 +97,14 @@ app.get('/download', async (req, res) => {
     }
 });
 
-// 启动服务器
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-    console.log(`服务器运行在 http://localhost:${port}`);
-});
-
-module.exports = app; 
+// 配置Vercel部署
+if (process.env.VERCEL) {
+    // Vercel环境下不需要显式调用listen
+    module.exports = app;
+} else {
+    // 本地开发环境
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+        console.log(`服务器运行在 http://localhost:${port}`);
+    });
+} 

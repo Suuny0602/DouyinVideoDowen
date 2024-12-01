@@ -13,11 +13,22 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "api/index.js"
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/preview",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/download",
+      "dest": "/api/index.js"
     },
     {
       "src": "/(.*)",
-      "dest": "public/$1"
+      "dest": "/public/$1"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
 } 

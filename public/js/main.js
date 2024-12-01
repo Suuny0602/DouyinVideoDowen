@@ -1,8 +1,8 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     const parseBtn = document.getElementById('parseBtn');
     const videoUrl = document.getElementById('videoUrl');
 
-    parseBtn.onclick = async () => {
+    parseBtn.onclick = async function() {
         const url = videoUrl.value.trim();
         if (!url) {
             alert('请输入视频链接');

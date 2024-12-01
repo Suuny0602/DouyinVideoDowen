@@ -1,4 +1,3 @@
-// 等待DOM加载完成
 document.addEventListener('DOMContentLoaded', () => {
     const parseBtn = document.getElementById('parseBtn');
     const videoUrl = document.getElementById('videoUrl');
@@ -11,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
+            console.log('开始请求API，URL:', url);
             const response = await fetch('/api/parse', {
                 method: 'POST',
                 headers: {
@@ -19,11 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ url })
             });
 
+            console.log('API响应:', response);
             if (!response.ok) {
                 throw new Error('解析失败');
             }
 
             const data = await response.json();
+            console.log('解析结果:', data);
+
             if (!data.success) {
                 throw new Error(data.message || '解析失败');
             }

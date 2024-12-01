@@ -3,14 +3,18 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    text-align: center;
 }
 
 h1 {
-    margin-bottom: 10px;
+    margin: 0;
+    font-size: 24px;
 }
 
-select {
+p {
+    margin: 10px 0 20px;
+}
+
+input[type="text"] {
     width: 300px;
     padding: 5px;
     margin-right: 10px;
@@ -28,10 +32,9 @@ button {
 video {
     max-width: 500px;
     width: 100%;
-    margin: 10px 0;
 }
 
 footer {
     margin-top: 40px;
-    color: #666;
+    font-size: 14px;
 } 

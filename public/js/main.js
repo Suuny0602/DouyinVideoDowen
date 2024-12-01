@@ -13,8 +13,6 @@ async function parseVideo() {
     }
 
     try {
-        console.log('开始解析链接:', url);
-
         // 调用API解析视频链接
         const response = await fetch('/api/parse', {
             method: 'POST',
@@ -29,8 +27,7 @@ async function parseVideo() {
         }
 
         const data = await response.json();
-        console.log('解析结果:', data);
-
+        
         if (!data.success) {
             throw new Error(data.message || '解析失败');
         }
@@ -45,7 +42,6 @@ async function parseVideo() {
         };
 
     } catch (error) {
-        console.error('解析失败:', error);
         alert('视频解析失败，请检查链接是否正确');
     }
 }

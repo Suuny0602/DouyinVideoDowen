@@ -11,20 +11,13 @@
     <p>支持抖音等多平台视频无水印下载</p>
 
     <div>
-        <select id="videoUrl">
-            <option value="">请输入视频链接（支持视频直链接、用户访问链接、分享链接）</option>
-        </select>
+        <input type="text" id="videoUrl" placeholder="请输入视频链接（支持视频直链接、用户访问链接、分享链接）">
         <button onclick="parseVideo()">解析视频</button>
     </div>
 
     <div id="previewSection" style="display: none;">
-        <h2>视频预览</h2>
         <video id="videoPreview" controls></video>
         <div>
-            <select id="resolution">
-                <option value="720p">720P</option>
-                <option value="1080p">1080P</option>
-            </select>
             <button id="downloadBtn">下载视频</button>
         </div>
     </div>

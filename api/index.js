@@ -16,21 +16,33 @@ app.post('/api/parse', async (req, res) => {
     try {
         const { url } = req.body;
         console.log('收到解析请求:', url);
-        
-        // 使用douyin.wtf的API
-        const apiUrl = `https://api.douyin.wtf/api?url=${encodeURIComponent(url)}`;
+
+        // 使用douyin.wtf的hybrid API
+        const apiUrl = `https://douyin.wtf/api/hybrid/video_data?url=${encodeURIComponent(url)}`;
         console.log('请求API:', apiUrl);
-        
-        const response = await axios.get(apiUrl);
+
+        const response = await axios({
+            method: 'get',
+            url: apiUrl,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'Accept': 'application/json'
+            }
+        });
+
         console.log('API响应:', response.data);
-        
-        if (response.data.status === 'success') {
+
+        if (response.data.code === 200 && response.data.data) {
+            const videoData = response.data.data;
+            // 获取最高质量的视频URL
+            const videoUrl = videoData.video.bit_rate[0].play_addr.url_list[0];
+
             res.json({
                 success: true,
-                url: response.data.nwm_video_url,
-                title: response.data.desc,
-                author: response.data.author,
-                cover: response.data.cover
+                url: videoUrl,
+                title: videoData.desc,
+                author: videoData.author.nickname,
+                cover: videoData.video.cover.url_list[0]
             });
         } else {
             throw new Error('解析失败');
@@ -97,14 +109,5 @@ app.get('/download', async (req, res) => {
     }
 });
 
-// 配置Vercel部署
-if (process.env.VERCEL) {
-    // Vercel环境下不需要显式调用listen
-    module.exports = app;
-} else {
-    // 本地开发环境
-    const port = process.env.PORT || 3000;
-    app.listen(port, () => {
-        console.log(`服务器运行在 http://localhost:${port}`);
-    });
-} 
+// 导出应用
+module.exports = app; 

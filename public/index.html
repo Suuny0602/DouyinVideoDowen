@@ -3,51 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>视频去水印 - 免费在线视频下载工具</title>
+    <title>视频去水印</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <!-- 头部区域 -->
-        <header>
-            <h1>视频去水印</h1>
-            <p>支持抖音等多平台视频无水印下载</p>
-        </header>
+    <h1>视频去水印</h1>
+    <p>支持抖音等多平台视频无水印下载</p>
 
-        <!-- 主要内容区域 -->
-        <main>
-            <!-- 链接输入区域 -->
-            <div class="input-section">
-                <textarea 
-                    id="videoUrl" 
-                    placeholder="请输入视频链接（支持视频直链接、用户访问链接、分享链接）"
-                ></textarea>
-                <button id="parseBtn">解析视频</button>
-            </div>
-
-            <!-- 视频预览区域 -->
-            <div class="preview-section" id="previewSection" style="display: none;">
-                <h2>视频预览</h2>
-                <div class="video-container">
-                    <video id="videoPreview" controls></video>
-                </div>
-                
-                <!-- 下载选项 -->
-                <div class="download-options">
-                    <select id="resolution">
-                        <option value="720p">720P</option>
-                        <option value="1080p">1080P</option>
-                    </select>
-                    <button id="downloadBtn">下载视频</button>
-                </div>
-            </div>
-        </main>
-
-        <!-- 底部信息 -->
-        <footer>
-            <p>作者：Sunny Yin | 联系方式：17371276909</p>
-        </footer>
+    <div>
+        <select id="videoUrl">
+            <option value="">请输入视频链接（支持视频直链接、用户访问链接、分享链接）</option>
+        </select>
+        <button onclick="parseVideo()">解析视频</button>
     </div>
+
+    <div id="previewSection" style="display: none;">
+        <h2>视频预览</h2>
+        <video id="videoPreview" controls></video>
+        <div>
+            <select id="resolution">
+                <option value="720p">720P</option>
+                <option value="1080p">1080P</option>
+            </select>
+            <button id="downloadBtn">下载视频</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>作者：Sunny Yin | 联系方式：17371276909</p>
+    </footer>
+
     <script src="/js/main.js"></script>
 </body>
 </html> 

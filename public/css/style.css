@@ -6,62 +6,31 @@ body {
     text-align: center;
 }
 
-/* 标题样式 */
 h1 {
-    color: #2196F3;
     margin-bottom: 10px;
 }
 
-/* 输入框样式 */
-textarea {
-    width: 100%;
-    max-width: 500px;
-    height: 100px;
-    margin: 20px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-/* 按钮样式 */
-button {
-    background-color: #2196F3;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #1976D2;
-}
-
-/* 视频预览区域 */
-.preview-section {
-    margin-top: 20px;
-}
-
-.video-container {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-video {
-    width: 100%;
-}
-
-/* 下载选项 */
-.download-options {
-    margin-top: 20px;
-}
-
 select {
+    width: 300px;
     padding: 5px;
     margin-right: 10px;
 }
 
-/* 底部信息 */
+button {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+#previewSection {
+    margin-top: 20px;
+}
+
+video {
+    max-width: 500px;
+    width: 100%;
+    margin: 10px 0;
+}
+
 footer {
     margin-top: 40px;
     color: #666;

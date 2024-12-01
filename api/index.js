@@ -17,17 +17,25 @@ app.post('/api/parse', async (req, res) => {
         const { url } = req.body;
         console.log('收到解析请求:', url);
         
+        if (!url) {
+            throw new Error('视频链接不能为空');
+        }
+        
         // 使用douyin.wtf的hybrid API
         const apiUrl = `https://douyin.wtf/api/hybrid/video_data?url=${encodeURIComponent(url)}`;
+        console.log('请求API:', apiUrl);
+        
         const response = await axios.get(apiUrl);
+        console.log('API响应:', response.data);
         
         if (response.data.code === 200 && response.data.data) {
-            // 从返回数据中提取无水印视频地址
             const videoData = response.data.data;
             // 获取所有可用的视频URL
             const videoUrls = videoData.video.bit_rate.map(item => item.play_addr.url_list[0]);
             // 选择最高质量的视频URL
             const videoUrl = videoUrls[0];
+            
+            console.log('解析到的视频URL:', videoUrl);
             
             res.json({
                 success: true,
@@ -37,14 +45,14 @@ app.post('/api/parse', async (req, res) => {
                 cover: videoData.video.cover.url_list[0]
             });
         } else {
-            throw new Error('解析失败');
+            throw new Error('解析失败: ' + JSON.stringify(response.data));
         }
         
     } catch (error) {
         console.error('解析失败详细信息:', error);
         res.status(500).json({
             success: false,
-            message: '视频解析失败，请检查链接是否正确'
+            message: error.message || '视频解析失败，请检查链接是否正确'
         });
     }
 });

@@ -7,25 +7,57 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <h1>视频去水印</h1>
-    <p>支持抖音等多平台视频无水印下载</p>
-    
-    <input type="text" id="videoUrl">
-    <button id="parseBtn">解析视频</button>
+    <div class="container">
+        <h1>视频去水印</h1>
+        <p>支持抖音等多平台视频无水印下载</p>
+        
+        <!-- 输入区域 -->
+        <div class="input-area">
+            <textarea id="videoUrl" placeholder="请输入视频链接（支持视频直链接、用户访问链接、分享链接）"></textarea>
+            <button onclick="parseVideo()">解析视频</button>
+        </div>
 
-    <footer>
-        <p>作者：Sunny Yin | 联系方式：17371276909</p>
-    </footer>
+        <!-- 预览区域 -->
+        <div id="previewArea" style="display: none;">
+            <h2>视频预览</h2>
+            <div class="video-container">
+                <video id="videoPlayer" controls></video>
+            </div>
+            <div class="download-options">
+                <select id="resolution">
+                    <option value="720">720P</option>
+                    <option value="1080">1080P</option>
+                </select>
+                <button onclick="downloadVideo()">下载视频</button>
+            </div>
+        </div>
+
+        <footer>
+            <p>作者：Sunny Yin | 联系方式：17371276909</p>
+        </footer>
+    </div>
 
     <script>
-        document.getElementById('parseBtn').onclick = function() {
-            var url = document.getElementById('videoUrl').value;
-            
-            if (!url) {
+        let currentVideoData = null;
+
+        function parseVideo() {
+            const input = document.getElementById('videoUrl').value.trim();
+            if (!input) {
                 alert('请输入视频链接');
                 return;
             }
 
+            // 提取链接
+            let url = input;
+            if (input.includes('http')) {
+                // 从分享文本中提取链接
+                const match = input.match(/https?:\/\/[^\s]+/);
+                if (match) {
+                    url = match[0];
+                }
+            }
+
+            console.log('解析链接:', url);
             fetch('/api/parse', {
                 method: 'POST',
                 headers: {
@@ -33,20 +65,44 @@
                 },
                 body: JSON.stringify({ url: url })
             })
-            .then(function(response) {
-                return response.json();
-            })
-            .then(function(data) {
+            .then(response => response.json())
+            .then(data => {
                 if (data.success) {
-                    window.location.href = '/download?url=' + encodeURIComponent(data.url);
+                    currentVideoData = data;
+                    showPreview(data);
                 } else {
                     alert('解析失败');
                 }
             })
-            .catch(function(error) {
+            .catch(error => {
+                console.error('解析失败:', error);
                 alert('视频解析失败，请检查链接是否正确');
             });
-        };
+        }
+
+        function showPreview(data) {
+            const previewArea = document.getElementById('previewArea');
+            const videoPlayer = document.getElementById('videoPlayer');
+            
+            // 显示预览区域
+            previewArea.style.display = 'block';
+            
+            // 设置视频源
+            videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
+        }
+
+        function downloadVideo() {
+            if (!currentVideoData) {
+                alert('请先解析视频');
+                return;
+            }
+
+            const resolution = document.getElementById('resolution').value;
+            const url = currentVideoData.url;
+            
+            // 下载视频
+            window.location.href = `/download?url=${encodeURIComponent(url)}&resolution=${resolution}`;
+        }
     </script>
 </body>
 </html> 

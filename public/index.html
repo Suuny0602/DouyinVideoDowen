@@ -11,12 +11,42 @@
     <p>支持抖音等多平台视频无水印下载</p>
     
     <input type="text" id="videoUrl">
-    <button onclick="parseVideo()">解析视频</button>
+    <button id="parseBtn">解析视频</button>
 
     <footer>
         <p>作者：Sunny Yin | 联系方式：17371276909</p>
     </footer>
 
-    <script src="/js/main.js"></script>
+    <script>
+        document.getElementById('parseBtn').onclick = function() {
+            var url = document.getElementById('videoUrl').value;
+            
+            if (!url) {
+                alert('请输入视频链接');
+                return;
+            }
+
+            fetch('/api/parse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(data) {
+                if (data.success) {
+                    window.location.href = '/download?url=' + encodeURIComponent(data.url);
+                } else {
+                    alert('解析失败');
+                }
+            })
+            .catch(function(error) {
+                alert('视频解析失败，请检查链接是否正确');
+            });
+        };
+    </script>
 </body>
 </html> 

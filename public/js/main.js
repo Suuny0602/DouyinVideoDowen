@@ -1,10 +1,5 @@
-// 获取DOM元素
-const videoUrlInput = document.getElementById('videoUrl');
-const parseBtn = document.getElementById('parseBtn');
-
-// 解析按钮点击事件
-parseBtn.addEventListener('click', async () => {
-    const url = videoUrlInput.value.trim();
+document.getElementById('parseBtn').addEventListener('click', async () => {
+    const url = document.getElementById('videoUrl').value.trim();
     if (!url) {
         alert('请输入视频链接');
         return;

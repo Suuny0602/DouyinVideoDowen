@@ -103,61 +103,51 @@ app.get('/preview', async (req, res) => {
                     : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Referer': 'https://www.douyin.com/'
             },
-            maxRedirects: 5,
-            validateStatus: function (status) {
-                return status >= 200 && status < 400; // 接受重定向状态码
-            }
+            maxRedirects: 5
         });
 
-        // 获取实际的视频URL（处理重定向）
+        // 获取实际的视频URL
         const finalUrl = headResponse.request.res.responseUrl || url;
 
-        const response = await axiosInstance({
-            method: 'get',
-            url: finalUrl,
-            responseType: 'stream',
-            headers: {
-                'User-Agent': isMobile 
-                    ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
-                    : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Referer': 'https://www.douyin.com/',
-                'Accept': '*/*',
-                'Accept-Encoding': 'identity;q=1, *;q=0',
-                'Connection': 'keep-alive',
-                'Range': 'bytes=0-'
-            },
-            maxRedirects: 5,
-            timeout: 15000
-        });
-
-        // 设置响应头
-        res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Accept-Ranges', 'bytes');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        
         if (isMobile) {
-            res.setHeader('X-Content-Type-Options', 'nosniff');
-            res.setHeader('Content-Security-Policy', "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;");
-            res.setHeader('Cache-Control', 'no-cache');
+            // 移动端：直接返回视频URL，让前端处理
+            res.json({
+                url: finalUrl,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+                    'Referer': 'https://www.douyin.com/'
+                }
+            });
         } else {
+            // PC端：继续使用流式传输
+            const response = await axiosInstance({
+                method: 'get',
+                url: finalUrl,
+                responseType: 'stream',
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                    'Referer': 'https://www.douyin.com/',
+                    'Accept': '*/*',
+                    'Accept-Encoding': 'identity;q=1, *;q=0',
+                    'Connection': 'keep-alive',
+                    'Range': 'bytes=0-'
+                },
+                timeout: 15000
+            });
+
+            res.setHeader('Content-Type', 'video/mp4');
+            res.setHeader('Accept-Ranges', 'bytes');
+            res.setHeader('Access-Control-Allow-Origin', '*');
             res.setHeader('Cache-Control', 'public, max-age=31536000');
+
+            response.data.pipe(res);
         }
-
-        // 错误处理
-        response.data.on('error', (error) => {
-            console.error('视频流错误:', error);
-            if (!res.headersSent) {
-                res.status(500).send('视频加载失败');
-            }
-        });
-
-        // 管道传输
-        response.data.pipe(res);
     } catch (error) {
         console.error('预览失败:', error);
-        if (!res.headersSent) {
-            res.status(500).send('视频预览失败');
-        }
+        res.status(500).json({
+            error: '视频预览失败',
+            message: error.message
+        });
     }
 });
 

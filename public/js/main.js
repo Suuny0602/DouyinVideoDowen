@@ -50,8 +50,20 @@ function showPreview(data) {
     // 显示预览区域
     previewArea.style.display = 'block';
     
-    // 设置视频源
-    videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
+    // 设置视频源并添加错误处理
+    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}`;
+    videoPlayer.src = videoUrl;
+    
+    // 添加错误处理
+    videoPlayer.onerror = function(e) {
+        console.error('视频加载失败:', e);
+        alert('视频预览加载失败，请尝试直接下载');
+    };
+    
+    // 添加加载事件
+    videoPlayer.onloadeddata = function() {
+        console.log('视频加载成功');
+    };
 }
 
 // 下载视频

@@ -10,27 +10,18 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/preview",
-      "dest": "/api/index.js"
+      "source": "/preview",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/download",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/public/$1",
-      "continue": true
-    },
-    {
-      "src": "/",
-      "dest": "/public/index.html"
+      "source": "/download",
+      "destination": "/api/index.js"
     }
   ],
   "headers": [

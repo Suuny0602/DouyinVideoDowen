@@ -50,9 +50,21 @@ function showPreview(data) {
     // 显示预览区域
     previewArea.style.display = 'block';
     
+    // 检测是否为移动设备
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
     // 设置视频源并添加错误处理
     const videoUrl = `/preview?url=${encodeURIComponent(data.url)}`;
     videoPlayer.src = videoUrl;
+    
+    // 如果是移动设备，添加特殊属性
+    if (isMobile) {
+        videoPlayer.setAttribute('playsinline', ''); // iOS支持内联播放
+        videoPlayer.setAttribute('webkit-playsinline', ''); // 旧版iOS支持
+        videoPlayer.setAttribute('x5-video-player-type', 'h5'); // 腾讯X5浏览器支持
+        videoPlayer.setAttribute('x5-video-player-fullscreen', 'true');
+        videoPlayer.setAttribute('preload', 'auto');
+    }
     
     // 添加错误处理
     videoPlayer.onerror = function(e) {
@@ -64,6 +76,16 @@ function showPreview(data) {
     videoPlayer.onloadeddata = function() {
         console.log('视频加载成功');
     };
+
+    // 添加播放错误处理
+    videoPlayer.addEventListener('stalled', function() {
+        console.log('视频加载停滞');
+        videoPlayer.load(); // 尝试重新加载
+    });
+
+    videoPlayer.addEventListener('waiting', function() {
+        console.log('视频缓冲中');
+    });
 }
 
 // 下载视频

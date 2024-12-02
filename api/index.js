@@ -91,31 +91,57 @@ app.get('/preview', async (req, res) => {
             return res.status(400).send('缺少URL参数');
         }
 
+        // 获取用户代理
+        const userAgent = req.headers['user-agent'];
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+
         const response = await axiosInstance({
             method: 'get',
             url: url,
             responseType: 'stream',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1',
+                // 根据设备类型使用不同的 User-Agent
+                'User-Agent': isMobile 
+                    ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
+                    : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Referer': 'https://www.douyin.com/',
                 'Accept': '*/*',
                 'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive'
+                'Connection': 'keep-alive',
+                'Range': 'bytes=0-' // 添加Range头，支持断点续传
             },
-            maxRedirects: 5
+            maxRedirects: 5,
+            timeout: 15000 // 增加超时时间到15秒
         });
 
         // 设置响应头
         res.setHeader('Content-Type', 'video/mp4');
         res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Accept-Ranges', 'bytes'); // 支持断点续传
         
         // 添加缓存控制
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         
+        // 如果是移动设备，添加特殊的响应头
+        if (isMobile) {
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:");
+        }
+
+        // 处理错误
+        response.data.on('error', (error) => {
+            console.error('视频流错误:', error);
+            if (!res.headersSent) {
+                res.status(500).send('视频加载失败');
+            }
+        });
+
         response.data.pipe(res);
     } catch (error) {
         console.error('预览失败:', error);
-        res.status(500).send('视频预览失败');
+        if (!res.headersSent) {
+            res.status(500).send('视频预览失败');
+        }
     }
 });
 

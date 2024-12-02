@@ -51,18 +51,26 @@ function showPreview(data) {
     previewArea.style.display = 'block';
     
     // 设置视频源并添加错误处理
-    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}`;
+    const videoUrl = data.url; // 直接使用解析后的URL
+    console.log('设置视频预览URL:', videoUrl);
+    
+    // 添加加载状态类
+    videoPlayer.classList.add('loading');
+    
+    // 设置视频源
     videoPlayer.src = videoUrl;
     
     // 添加错误处理
     videoPlayer.onerror = function(e) {
         console.error('视频加载失败:', e);
+        videoPlayer.classList.remove('loading');
         alert('视频预览加载失败，请尝试直接下载');
     };
     
     // 添加加载事件
     videoPlayer.onloadeddata = function() {
         console.log('视频加载成功');
+        videoPlayer.classList.remove('loading');
     };
 }
 

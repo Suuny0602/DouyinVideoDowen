@@ -64,7 +64,6 @@ app.get('/preview', async (req, res) => {
             return res.status(400).send('缺少URL参数');
         }
 
-        // 添加更多的请求头
         const response = await axios({
             method: 'get',
             url: url,
@@ -74,18 +73,31 @@ app.get('/preview', async (req, res) => {
                 'Referer': 'https://www.douyin.com/',
                 'Accept': '*/*',
                 'Accept-Encoding': 'gzip, deflate, br',
-                'Connection': 'keep-alive'
+                'Connection': 'keep-alive',
+                'Range': req.headers.range || 'bytes=0-'
             },
-            maxRedirects: 5
+            maxRedirects: 5,
+            timeout: 30000 // 30秒超时
         });
 
         // 设置响应头
         res.setHeader('Content-Type', 'video/mp4');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        res.setHeader('Accept-Ranges', 'bytes');
         
-        // 添加缓存控制
+        if (response.headers['content-length']) {
+            res.setHeader('Content-Length', response.headers['content-length']);
+        }
+        
+        if (response.headers['content-range']) {
+            res.setHeader('Content-Range', response.headers['content-range']);
+        }
+        
+        // CORS 头
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Range');
+        
+        // 缓存控制
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         
         response.data.pipe(res);

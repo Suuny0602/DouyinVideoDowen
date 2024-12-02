@@ -79,43 +79,44 @@ function showPreview(data) {
         oldVideo.parentNode.replaceChild(newVideo, oldVideo);
         videoPlayer = newVideo;
     }
-
-    // 尝试所有可用的URL
-    let currentUrlIndex = 0;
-    const tryNextUrl = () => {
-        if (currentUrlIndex >= data.urls.length) {
-            console.error('所有URL都已尝试失败');
-            alert('视频预览加载失败，请尝试直接下载');
-            return;
-        }
-
-        const currentUrl = data.urls[currentUrlIndex];
-        console.log(`尝试播放URL ${currentUrlIndex + 1}/${data.urls.length}`);
-
-        if (isMobile) {
-            // 移动端直接使用原始URL
-            videoPlayer.src = currentUrl;
-        } else {
-            // PC端使用代理
-            videoPlayer.src = `/preview?url=${encodeURIComponent(currentUrl)}`;
-        }
-    };
-
-    // 错误处理
-    videoPlayer.onerror = function(e) {
-        console.error(`URL ${currentUrlIndex + 1} 加载失败:`, e);
-        currentUrlIndex++;
-        tryNextUrl();
-    };
-
-    // 加载成功处理
-    videoPlayer.onloadeddata = function() {
-        console.log('视频加载成功');
-    };
-
-    // 开始尝试第一个URL
-    tryNextUrl();
-
+    
+    // 构建视频URL
+    const previewUrl = `/preview?url=${encodeURIComponent(data.url)}&mobile=${isMobile ? 1 : 0}`;
+    
+    if (isMobile) {
+        // 移动端：先获取实际URL
+        fetch(previewUrl)
+            .then(response => response.json())
+            .then(data => {
+                // 创建video源
+                const source = document.createElement('source');
+                source.src = data.url;
+                source.type = 'video/mp4';
+                
+                // 清空现有源并添加新源
+                while (videoPlayer.firstChild) {
+                    videoPlayer.removeChild(videoPlayer.firstChild);
+                }
+                videoPlayer.appendChild(source);
+                
+                // 加载视频
+                videoPlayer.load();
+                
+                // 添加错误处理
+                videoPlayer.onerror = function(e) {
+                    console.error('视频加载失败:', e);
+                    alert('视频预览加载失败，请尝试直接下载');
+                };
+            })
+            .catch(error => {
+                console.error('获取视频URL失败:', error);
+                alert('视频预览加载失败，请尝试直接下载');
+            });
+    } else {
+        // PC端直接设置src
+        videoPlayer.src = previewUrl;
+    }
+    
     // 添加播放错误处理
     videoPlayer.addEventListener('stalled', function() {
         console.log('视频加载停滞');
@@ -126,6 +127,10 @@ function showPreview(data) {
 
     videoPlayer.addEventListener('waiting', function() {
         console.log('视频缓冲中');
+    });
+    
+    videoPlayer.addEventListener('loadeddata', function() {
+        console.log('视频加载成功');
     });
 }
 

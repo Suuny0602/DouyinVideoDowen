@@ -61,12 +61,12 @@ app.post('/api/parse', async (req, res) => {
 
         if (response.data.code === 200 && response.data.data) {
             const videoData = response.data.data;
-            // 获取最高质量的视频URL
-            const videoUrl = videoData.video.bit_rate[0].play_addr.url_list[0];
-
+            // 获取所有可用的视频URL
+            const videoUrls = videoData.video.bit_rate.map(item => item.play_addr.url_list[0]);
+            
             res.json({
                 success: true,
-                url: videoUrl,
+                urls: videoUrls,  // 返回所有可用的URL
                 title: videoData.desc,
                 author: videoData.author.nickname,
                 cover: videoData.video.cover.url_list[0]

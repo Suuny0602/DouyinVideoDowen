@@ -78,31 +78,44 @@ function showPreview(data) {
         // 替换视频元素
         oldVideo.parentNode.replaceChild(newVideo, oldVideo);
         videoPlayer = newVideo;
-        
-        // 移动端直接使用原始URL
-        videoPlayer.src = data.url;
-    } else {
-        // PC端使用代理
-        videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
     }
-    
-    // 添加错误处理
-    videoPlayer.onerror = function(e) {
-        console.error('视频加载失败:', e);
-        // 如果移动端直接访问失败，尝试使用代理
-        if (isMobile && videoPlayer.src === data.url) {
-            console.log('尝试使用代理加载视频');
-            videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
-        } else {
+
+    // 尝试所有可用的URL
+    let currentUrlIndex = 0;
+    const tryNextUrl = () => {
+        if (currentUrlIndex >= data.urls.length) {
+            console.error('所有URL都已尝试失败');
             alert('视频预览加载失败，请尝试直接下载');
+            return;
+        }
+
+        const currentUrl = data.urls[currentUrlIndex];
+        console.log(`尝试播放URL ${currentUrlIndex + 1}/${data.urls.length}`);
+
+        if (isMobile) {
+            // 移动端直接使用原始URL
+            videoPlayer.src = currentUrl;
+        } else {
+            // PC端使用代理
+            videoPlayer.src = `/preview?url=${encodeURIComponent(currentUrl)}`;
         }
     };
-    
-    // 添加加载成功处理
+
+    // 错误处理
+    videoPlayer.onerror = function(e) {
+        console.error(`URL ${currentUrlIndex + 1} 加载失败:`, e);
+        currentUrlIndex++;
+        tryNextUrl();
+    };
+
+    // 加载成功处理
     videoPlayer.onloadeddata = function() {
         console.log('视频加载成功');
     };
-    
+
+    // 开始尝试第一个URL
+    tryNextUrl();
+
     // 添加播放错误处理
     videoPlayer.addEventListener('stalled', function() {
         console.log('视频加载停滞');

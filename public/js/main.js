@@ -53,17 +53,62 @@ function showPreview(data) {
     // 检测是否为移动设备
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    // 设置视频源并添加错误处理
-    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}`;
-    videoPlayer.src = videoUrl;
-    
     // 如果是移动设备，添加特殊属性
     if (isMobile) {
-        videoPlayer.setAttribute('playsinline', ''); // iOS支持内联播放
-        videoPlayer.setAttribute('webkit-playsinline', ''); // 旧版iOS支持
-        videoPlayer.setAttribute('x5-video-player-type', 'h5'); // 腾讯X5浏览器支持
-        videoPlayer.setAttribute('x5-video-player-fullscreen', 'true');
-        videoPlayer.setAttribute('preload', 'auto');
+        // 移除之前的视频元素
+        const oldVideo = videoPlayer;
+        const newVideo = document.createElement('video');
+        
+        // 复制原有属性
+        newVideo.id = oldVideo.id;
+        newVideo.className = oldVideo.className;
+        newVideo.controls = true;
+        
+        // 添加移动端特殊属性
+        newVideo.setAttribute('playsinline', '');
+        newVideo.setAttribute('webkit-playsinline', '');
+        newVideo.setAttribute('x5-video-player-type', 'h5');
+        newVideo.setAttribute('x5-video-player-fullscreen', 'true');
+        newVideo.setAttribute('x5-video-orientation', 'portraint');
+        newVideo.setAttribute('preload', 'metadata');
+        newVideo.setAttribute('controlsList', 'nodownload');
+        newVideo.style.width = '100%';
+        newVideo.style.maxHeight = '70vh';
+        newVideo.style.backgroundColor = '#000';
+        
+        // 替换视频元素
+        oldVideo.parentNode.replaceChild(newVideo, oldVideo);
+        
+        // 更新videoPlayer引用
+        videoPlayer = newVideo;
+    }
+    
+    // 构建视频URL
+    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}&mobile=${isMobile ? 1 : 0}`;
+    
+    // 设置视频源
+    if (isMobile) {
+        // 移动端使用blob URL
+        fetch(videoUrl)
+            .then(response => response.blob())
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                videoPlayer.src = blobUrl;
+                
+                // 清理blob URL
+                videoPlayer.onloadeddata = function() {
+                    console.log('视频加载成功');
+                    // 一段时间后释放blob URL
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+                };
+            })
+            .catch(error => {
+                console.error('视频加载失败:', error);
+                alert('视频预览加载失败，请尝试直接下载');
+            });
+    } else {
+        // PC端直接设置src
+        videoPlayer.src = videoUrl;
     }
     
     // 添加错误处理
@@ -72,19 +117,31 @@ function showPreview(data) {
         alert('视频预览加载失败，请尝试直接下载');
     };
     
-    // 添加加载事件
-    videoPlayer.onloadeddata = function() {
-        console.log('视频加载成功');
-    };
-
     // 添加播放错误处理
     videoPlayer.addEventListener('stalled', function() {
         console.log('视频加载停滞');
-        videoPlayer.load(); // 尝试重新加载
+        if (!videoPlayer.paused) {
+            videoPlayer.load(); // 只在播放状态下重新加载
+        }
     });
 
     videoPlayer.addEventListener('waiting', function() {
         console.log('视频缓冲中');
+    });
+    
+    // 添加播放状态监听
+    videoPlayer.addEventListener('play', function() {
+        console.log('视频开始播放');
+    });
+    
+    videoPlayer.addEventListener('pause', function() {
+        console.log('视频暂停');
+    });
+    
+    // 添加进度监听
+    videoPlayer.addEventListener('progress', function() {
+        console.log('视频加载进度:', videoPlayer.buffered.length ? 
+            videoPlayer.buffered.end(videoPlayer.buffered.length - 1) : 0);
     });
 }
 

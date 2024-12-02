@@ -27,8 +27,18 @@ app.post('/api/parse', async (req, res) => {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 'Accept': 'application/json'
+            },
+            timeout: 60000, // 增加超时时间到60秒
+            maxRedirects: 5,
+            validateStatus: function (status) {
+                return status >= 200 && status < 600; // 接受更广范围的状态码
             }
         });
+
+        // 检查响应状态
+        if (response.status !== 200) {
+            throw new Error(`API请求失败，状态码: ${response.status}`);
+        }
 
         console.log('API响应:', response.data);
 
@@ -53,13 +63,18 @@ app.post('/api/parse', async (req, res) => {
                 cover: videoData.video && videoData.video.cover ? videoData.video.cover.url_list[0] : ''
             });
         } else {
-            throw new Error('解析失败');
+            throw new Error(response.data.message || '解析失败');
         }
     } catch (error) {
         console.error('解析失败:', error);
+        // 更详细的错误信息
+        const errorMessage = error.response 
+            ? `请求失败(${error.response.status}): ${error.response.data}`
+            : error.message || '视频解析失败，请检查链接是否正确';
+            
         res.status(500).json({
             success: false,
-            message: error.message || '视频解析失败，请检查链接是否正确'
+            message: errorMessage
         });
     }
 });

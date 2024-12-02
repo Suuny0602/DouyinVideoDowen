@@ -34,15 +34,23 @@ app.post('/api/parse', async (req, res) => {
 
         if (response.data.code === 200 && response.data.data) {
             const videoData = response.data.data;
-            // 获取最高质量的视频URL
-            const videoUrl = videoData.video.bit_rate[0].play_addr.url_list[0];
+            // 获取无水印视频URL
+            let videoUrl;
+            if (videoData.video && videoData.video.play_addr && videoData.video.play_addr.url_list) {
+                videoUrl = videoData.video.play_addr.url_list[0];
+            } else if (videoData.video && videoData.video.bit_rate && videoData.video.bit_rate.length > 0) {
+                videoUrl = videoData.video.bit_rate[0].play_addr.url_list[0];
+            } else {
+                throw new Error('无法获取视频地址');
+            }
 
+            // 返回处理后的数据
             res.json({
                 success: true,
                 url: videoUrl,
-                title: videoData.desc,
-                author: videoData.author.nickname,
-                cover: videoData.video.cover.url_list[0]
+                title: videoData.desc || '',
+                author: videoData.author ? videoData.author.nickname : '',
+                cover: videoData.video && videoData.video.cover ? videoData.video.cover.url_list[0] : ''
             });
         } else {
             throw new Error('解析失败');

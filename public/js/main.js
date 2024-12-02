@@ -51,7 +51,7 @@ function showPreview(data) {
     previewArea.style.display = 'block';
     
     // 设置视频源并添加错误处理
-    const videoUrl = data.url; // 直接使用解析后的URL
+    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}`;
     console.log('设置视频预览URL:', videoUrl);
     
     // 添加加载状态类

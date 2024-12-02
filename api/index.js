@@ -64,6 +64,7 @@ app.get('/preview', async (req, res) => {
             return res.status(400).send('缺少URL参数');
         }
 
+        // 添加更多的请求头
         const response = await axios({
             method: 'get',
             url: url,
@@ -75,13 +76,16 @@ app.get('/preview', async (req, res) => {
                 'Accept-Encoding': 'gzip, deflate, br',
                 'Connection': 'keep-alive'
             },
-            maxRedirects: 5,
-            timeout: 10000
+            maxRedirects: 5
         });
 
         // 设置响应头
         res.setHeader('Content-Type', 'video/mp4');
         res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+        
+        // 添加缓存控制
         res.setHeader('Cache-Control', 'public, max-age=31536000');
         
         response.data.pipe(res);

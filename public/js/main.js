@@ -83,38 +83,42 @@ function showPreview(data) {
         videoPlayer = newVideo;
     }
     
-    // 构建视频URL
-    const videoUrl = `/preview?url=${encodeURIComponent(data.url)}&mobile=${isMobile ? 1 : 0}`;
+    // 直接使用视频URL
+    const videoUrl = data.url;
     
     // 设置视频源
     if (isMobile) {
-        // 移动端使用blob URL
-        fetch(videoUrl)
-            .then(response => response.blob())
-            .then(blob => {
-                const blobUrl = URL.createObjectURL(blob);
-                videoPlayer.src = blobUrl;
-                
-                // 清理blob URL
-                videoPlayer.onloadeddata = function() {
-                    console.log('视频加载成功');
-                    // 一段时间后释放blob URL
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
-                };
-            })
-            .catch(error => {
-                console.error('视频加载失败:', error);
-                alert('视频预览加载失败，请尝试直接下载');
-            });
+        // 移动端直接设置src
+        videoPlayer.src = videoUrl;
+        
+        // 添加跨域属性
+        videoPlayer.crossOrigin = 'anonymous';
+        
+        // 设置poster（预览图）
+        if (data.cover) {
+            videoPlayer.poster = data.cover;
+        }
     } else {
-        // PC端直接设置src
+        // PC端也直接使用视频URL
         videoPlayer.src = videoUrl;
     }
     
     // 添加错误处理
     videoPlayer.onerror = function(e) {
         console.error('视频加载失败:', e);
-        alert('视频预览加载失败，请尝试直接下载');
+        // 尝试使用备用方案
+        const fallbackUrl = `/download?url=${encodeURIComponent(videoUrl)}`;
+        videoPlayer.src = fallbackUrl;
+        
+        videoPlayer.onerror = function(e) {
+            console.error('备用方案也失败:', e);
+            alert('视频预览加载失败，请尝试直接下载');
+        };
+    };
+    
+    // 添加加载成功处理
+    videoPlayer.onloadeddata = function() {
+        console.log('视频加载成功');
     };
     
     // 添加播放错误处理

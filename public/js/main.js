@@ -78,44 +78,30 @@ function showPreview(data) {
         // 替换视频元素
         oldVideo.parentNode.replaceChild(newVideo, oldVideo);
         videoPlayer = newVideo;
-    }
-    
-    // 构建视频URL
-    const previewUrl = `/preview?url=${encodeURIComponent(data.url)}&mobile=${isMobile ? 1 : 0}`;
-    
-    if (isMobile) {
-        // 移动端：先获取实际URL
-        fetch(previewUrl)
-            .then(response => response.json())
-            .then(data => {
-                // 创建video源
-                const source = document.createElement('source');
-                source.src = data.url;
-                source.type = 'video/mp4';
-                
-                // 清空现有源并添加新源
-                while (videoPlayer.firstChild) {
-                    videoPlayer.removeChild(videoPlayer.firstChild);
-                }
-                videoPlayer.appendChild(source);
-                
-                // 加载视频
-                videoPlayer.load();
-                
-                // 添加错误处理
-                videoPlayer.onerror = function(e) {
-                    console.error('视频加载失败:', e);
-                    alert('视频预览加载失败，请尝试直接下载');
-                };
-            })
-            .catch(error => {
-                console.error('获取视频URL失败:', error);
-                alert('视频预览加载失败，请尝试直接下载');
-            });
+        
+        // 移动端直接使用原始URL
+        videoPlayer.src = data.url;
     } else {
-        // PC端直接设置src
-        videoPlayer.src = previewUrl;
+        // PC端使用代理
+        videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
     }
+    
+    // 添加错误处理
+    videoPlayer.onerror = function(e) {
+        console.error('视频加载失败:', e);
+        // 如果移动端直接访问失败，尝试使用代理
+        if (isMobile && videoPlayer.src === data.url) {
+            console.log('尝试使用代理加载视频');
+            videoPlayer.src = `/preview?url=${encodeURIComponent(data.url)}`;
+        } else {
+            alert('视频预览加载失败，请尝试直接下载');
+        }
+    };
+    
+    // 添加加载成功处理
+    videoPlayer.onloadeddata = function() {
+        console.log('视频加载成功');
+    };
     
     // 添加播放错误处理
     videoPlayer.addEventListener('stalled', function() {
@@ -127,10 +113,6 @@ function showPreview(data) {
 
     videoPlayer.addEventListener('waiting', function() {
         console.log('视频缓冲中');
-    });
-    
-    videoPlayer.addEventListener('loadeddata', function() {
-        console.log('视频加载成功');
     });
 }
 

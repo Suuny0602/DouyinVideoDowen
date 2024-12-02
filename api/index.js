@@ -4,6 +4,33 @@ const axios = require('axios');
 const app = express();
 const path = require('path');
 
+// 设置axios默认超时时间
+axios.defaults.timeout = 8000; // 8秒
+
+// 创建axios实例，添加重试机制
+const axiosInstance = axios.create({
+    timeout: 8000,
+    retry: 3,
+    retryDelay: 1000
+});
+
+// 添加重试拦截器
+axiosInstance.interceptors.response.use(null, async (error) => {
+    const config = error.config;
+    if (!config || !config.retry) return Promise.reject(error);
+    
+    config.retryCount = config.retryCount || 0;
+    
+    if (config.retryCount >= config.retry) {
+        return Promise.reject(error);
+    }
+    
+    config.retryCount += 1;
+    const delay = new Promise(resolve => setTimeout(resolve, config.retryDelay));
+    await delay;
+    return axiosInstance(config);
+});
+
 // 启用CORS和JSON解析
 app.use(cors());
 app.use(express.json());
@@ -21,7 +48,7 @@ app.post('/api/parse', async (req, res) => {
         const apiUrl = `https://douyin.wtf/api/hybrid/video_data?url=${encodeURIComponent(url)}`;
         console.log('请求API:', apiUrl);
 
-        const response = await axios({
+        const response = await axiosInstance({
             method: 'get',
             url: apiUrl,
             headers: {
@@ -49,7 +76,7 @@ app.post('/api/parse', async (req, res) => {
         }
     } catch (error) {
         console.error('解析失败:', error);
-        res.status(500).json({
+        res.status(error.response?.status || 500).json({
             success: false,
             message: error.message || '视频解析失败，请检查链接是否正确'
         });
@@ -64,8 +91,7 @@ app.get('/preview', async (req, res) => {
             return res.status(400).send('缺少URL参数');
         }
 
-        // 添加更多的请求头
-        const response = await axios({
+        const response = await axiosInstance({
             method: 'get',
             url: url,
             responseType: 'stream',
@@ -82,8 +108,6 @@ app.get('/preview', async (req, res) => {
         // 设置响应头
         res.setHeader('Content-Type', 'video/mp4');
         res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
         
         // 添加缓存控制
         res.setHeader('Cache-Control', 'public, max-age=31536000');
@@ -103,7 +127,7 @@ app.get('/download', async (req, res) => {
             return res.status(400).send('缺少URL参数');
         }
 
-        const response = await axios({
+        const response = await axiosInstance({
             method: 'get',
             url: url,
             responseType: 'stream',

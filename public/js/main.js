@@ -45,7 +45,6 @@ function parseVideo() {
 // 显示预览
 function showPreview(data) {
     const previewArea = document.getElementById('previewArea');
-    const videoPlayer = document.getElementById('videoPlayer');
     
     // 显示预览区域
     previewArea.style.display = 'block';
@@ -53,99 +52,74 @@ function showPreview(data) {
     // 检测是否为移动设备
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     
-    // 如果是移动设备，添加特殊属性
-    if (isMobile) {
-        // 移除之前的视频元素
-        const oldVideo = videoPlayer;
-        const newVideo = document.createElement('video');
-        
-        // 复制原有属性
-        newVideo.id = oldVideo.id;
-        newVideo.className = oldVideo.className;
-        newVideo.controls = true;
-        
-        // 添加移动端特殊属性
-        newVideo.setAttribute('playsinline', '');
-        newVideo.setAttribute('webkit-playsinline', '');
-        newVideo.setAttribute('x5-video-player-type', 'h5');
-        newVideo.setAttribute('x5-video-player-fullscreen', 'true');
-        newVideo.setAttribute('x5-video-orientation', 'portraint');
-        newVideo.setAttribute('preload', 'metadata');
-        newVideo.setAttribute('controlsList', 'nodownload');
-        newVideo.style.width = '100%';
-        newVideo.style.maxHeight = '70vh';
-        newVideo.style.backgroundColor = '#000';
-        
-        // 替换视频元素
-        oldVideo.parentNode.replaceChild(newVideo, oldVideo);
-        
-        // 更新videoPlayer引用
-        videoPlayer = newVideo;
+    // 初始化或重新初始化video.js播放器
+    if (window.videoPlayer) {
+        window.videoPlayer.dispose();
     }
     
-    // 直接使用视频URL
-    const videoUrl = data.url;
-    
-    // 设置视频源
-    if (isMobile) {
-        // 移动端直接设置src
-        videoPlayer.src = videoUrl;
-        
-        // 添加跨域属性
-        videoPlayer.crossOrigin = 'anonymous';
-        
-        // 设置poster（预览图）
-        if (data.cover) {
-            videoPlayer.poster = data.cover;
-        }
-    } else {
-        // PC端也直接使用视频URL
-        videoPlayer.src = videoUrl;
-    }
-    
-    // 添加错误处理
-    videoPlayer.onerror = function(e) {
-        console.error('视频加载失败:', e);
-        // 尝试使用备用方案
-        const fallbackUrl = `/download?url=${encodeURIComponent(videoUrl)}`;
-        videoPlayer.src = fallbackUrl;
-        
-        videoPlayer.onerror = function(e) {
-            console.error('备用方案也失败:', e);
-            alert('视频预览加载失败，请尝试直接下载');
-        };
-    };
-    
-    // 添加加载成功处理
-    videoPlayer.onloadeddata = function() {
-        console.log('视频加载成功');
-    };
-    
-    // 添加播放错误处理
-    videoPlayer.addEventListener('stalled', function() {
-        console.log('视频加载停滞');
-        if (!videoPlayer.paused) {
-            videoPlayer.load(); // 只在播放状态下重新加载
-        }
+    window.videoPlayer = videojs('videoPlayer', {
+        controls: true,
+        autoplay: false,
+        preload: 'auto',
+        fluid: true,
+        playsinline: true,
+        userActions: {
+            hotkeys: true
+        },
+        html5: {
+            vhs: {
+                overrideNative: true
+            },
+            nativeVideoTracks: false,
+            nativeAudioTracks: false,
+            nativeTextTracks: false
+        },
+        techOrder: ['html5'],
+        sources: [{
+            src: data.url,
+            type: 'video/mp4'
+        }],
+        poster: data.cover
     });
-
-    videoPlayer.addEventListener('waiting', function() {
+    
+    // 错误处理
+    window.videoPlayer.on('error', function() {
+        console.error('视频加载失败，尝试使用备用方案');
+        // 尝试使用备用源
+        window.videoPlayer.src({
+            src: `/download?url=${encodeURIComponent(data.url)}`,
+            type: 'video/mp4'
+        });
+        
+        // 如果备用方案也失败
+        window.videoPlayer.on('error', function() {
+            console.error('备用方案也失败');
+            alert('视频预览加载失败，请尝试直接下载');
+        });
+    });
+    
+    // 添加事件监听
+    window.videoPlayer.on('loadeddata', function() {
+        console.log('视频加载成功');
+    });
+    
+    window.videoPlayer.on('waiting', function() {
         console.log('视频缓冲中');
     });
     
-    // 添加播放状态监听
-    videoPlayer.addEventListener('play', function() {
+    window.videoPlayer.on('playing', function() {
         console.log('视频开始播放');
     });
     
-    videoPlayer.addEventListener('pause', function() {
+    window.videoPlayer.on('pause', function() {
         console.log('视频暂停');
     });
     
-    // 添加进度监听
-    videoPlayer.addEventListener('progress', function() {
-        console.log('视频加载进度:', videoPlayer.buffered.length ? 
-            videoPlayer.buffered.end(videoPlayer.buffered.length - 1) : 0);
+    window.videoPlayer.on('progress', function() {
+        const buffered = window.videoPlayer.buffered();
+        if (buffered.length) {
+            console.log('视频加载进度:', buffered.end(buffered.length - 1));
+        }
     });
 }
 
